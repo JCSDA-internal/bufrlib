@@ -20,10 +20,9 @@ endif()
 message(STATUS "Option: BUILD_STATIC_LIBS: ${BUILD_STATIC_LIBS}")
 message(STATUS "Option: BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
 
-#Set default build type to debug if not specified
+#Set default build type to Release if not specified
 if(NOT CMAKE_CONFIGURATION_TYPES)
   if(NOT CMAKE_BUILD_TYPE)
-    # Encourage user to specify build type.
     message(STATUS "Setting default build type to 'Release'.  Set CMAKE_BUILD_TYPE variable to change build types.")
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY VALUE "Release")
   endif()
@@ -58,7 +57,7 @@ set(BUFRLIB_INCLUDE_DIR bufrlib)
 set(CMAKE_Fortran_MODULE_DIRECTORY ${BUFRLIB_INCLUDE_DIR})
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-#Enable interproceedural optimization if abvailible
+#Enable interproceedural optimization if available
 include(CheckIPOSupported)
 check_ipo_supported(RESULT _result OUTPUT _output)
 if(_result)
