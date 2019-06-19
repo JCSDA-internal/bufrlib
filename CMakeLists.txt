@@ -87,8 +87,10 @@ target_compile_definitions(${PROJECT_NAME}_objects PUBLIC ${BUFRLIB_PUBLIC_FLAGS
                                                    PRIVATE ${BUFRLIB_PRIVATE_FLAGS})
 
 #Add static lib target
-add_library(${PROJECT_NAME}_static STATIC $<TARGET_OBJECTS:${PROJECT_NAME}_objects>)
-set(LIB_TARGETS ${PROJECT_NAME}_static)
+if(BUILD_STATIC_LIBS)
+    add_library(${PROJECT_NAME}_static STATIC $<TARGET_OBJECTS:${PROJECT_NAME}_objects>)
+    list(APPEND LIB_TARGETS ${PROJECT_NAME}_static)
+endif()
 
 #Add shared lib target
 if(BUILD_SHARED_LIBS)
