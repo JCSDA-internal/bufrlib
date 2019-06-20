@@ -21,7 +21,7 @@ cd _build && make -j<num-procs> install
 
 The following CMake variables control the build:
  * `BUILD_STATIC_LIBS` - Build static libraries. [default=ON]
- * `BUILD_SHARED_LIBS` - Build static libraries. [default=OFF]
+ * `BUILD_SHARED_LIBS` - Build shared libraries. [default=OFF]
  * `OPT_IPO` - Enable [interprocedural optimization](https://en.wikipedia.org/wiki/Interprocedural_optimization) if available. [default=ON] 
 
 This package can build both static and shared libraries simultaneously, as specified by the CMake
