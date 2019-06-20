@@ -1,0 +1,135 @@
+#
+# libbufr/CMakeLists.txt
+#
+
+cmake_minimum_required( VERSION 3.9 )
+project(bufrlib VERSION 11.3 LANGUAGES C Fortran)
+
+### Configuration options
+option(BUILD_STATIC_LIBS "Build static libarary" ON)
+option(BUILD_SHARED_LIBS "Build shared libarary" OFF)
+option(OPT_IPO "Enable interproceedural optimization if availible." ON)
+
+#Ensure at least one of BUILD_SHARED_LIBS and BUILD_STATIC_LIBS is set
+if(NOT (BUILD_STATIC_LIBS OR BUILD_SHARED_LIBS))
+    message(STATUS "Niether BUILD_STATIC_LIBS nor BUILD_SHARED_LIBS is set.  Defaulting to BUILD_STATIC_LIBS=ON")
+    set(BUILD_STATIC_LIBS ON CACHE BOOL "Build static library" FORCE)
+    set(BUILD_STATIC_LIBS ON)
+endif()
+
+message(STATUS "Option: BUILD_STATIC_LIBS: ${BUILD_STATIC_LIBS}")
+message(STATUS "Option: BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
+message(STATUS "Option: OPT_IPO: ${OPT_IPO}")
+
+#Set default build type to Release if not specified
+if(NOT CMAKE_CONFIGURATION_TYPES)
+  if(NOT CMAKE_BUILD_TYPE)
+    message(STATUS "Setting default build type to 'Release'.  Set CMAKE_BUILD_TYPE variable to change build types.")
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY VALUE "Release")
+  endif()
+endif()
+
+#Postfix for debug libraries so they can live alongside release libraries
+set(CMAKE_DEBUG_POSTFIX "_d")
+
+### Compilation flags
+
+#Public flags are necessary to build the library and to build code that links against the library
+set(BUFRLIB_PUBLIC_FLAGS DYNAMIC_ALLOCATION)
+
+#Private flags are necessary only when building the library
+set(BUFRLIB_PRM src/bufrlib.prm)
+file(READ ${BUFRLIB_PRM} BUFRLIB_PRM_STR)
+foreach(_var IN ITEMS MAXNC MXNAF)
+    if(BUFRLIB_PRM_STR MATCHES "${_var} = ([0-9]+)")
+        list(APPEND BUFRLIB_PRIVATE_FLAGS $<$<COMPILE_LANGUAGE:C>:${_var}=${CMAKE_MATCH_1}>)
+    else()
+        message(FATAL_ERROR "Unable to parse variable ${_var} value from file: ${BUFRLIB_PRM}")
+    endif()
+endforeach()
+
+include(TestBigEndian)
+test_big_endian(IS_BIG_ENDIAN)
+if(IS_BIG_ENDIAN)
+    list(APPEND BUFRLIB_PRIVATE_FLAGS $<$<COMPILE_LANGUAGE:Fortran>:BIG_ENDIAN>)
+else()
+    list(APPEND BUFRLIB_PRIVATE_FLAGS $<$<COMPILE_LANGUAGE:Fortran>:LITTLE_ENDIAN>)
+endif()
+
+### Global compilation properties
+set(BUFRLIB_INCLUDE_DIR bufrlib) #path relative to <prefix>/include/ to install headers/modules
+set(CMAKE_Fortran_MODULE_DIRECTORY ${BUFRLIB_INCLUDE_DIR})
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+#Enable interproceedural optimization if available
+include(CheckIPOSupported)
+check_ipo_supported(RESULT _result OUTPUT _output)
+if(_result)
+    if(OPT_IPO)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
+        message(STATUS "Interproceedural optimization: Enabled")
+    else()
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
+        message(STATUS "Interproceedural optimization: Disabled")
+    endif()
+else()
+    message(STATUS "Interproceedural optimization: Not availible")
+endif()
+
+### Define Library Targets
+file(GLOB C_SRC src/*.c)
+file(GLOB C_HDRS src/*.h)
+file(GLOB F_SRC src/modv*.F src/moda*.F src/*.f src/*.F) #Order of compilation is important
+
+#Use a common object library for building shared and static targets
+add_library(${PROJECT_NAME}_objects OBJECT ${C_SRC} ${F_SRC})
+target_compile_definitions(${PROJECT_NAME}_objects PUBLIC ${BUFRLIB_PUBLIC_FLAGS} 
+                                                   PRIVATE ${BUFRLIB_PRIVATE_FLAGS})
+
+#Add static lib target
+if(BUILD_STATIC_LIBS)
+    add_library(${PROJECT_NAME}_static STATIC $<TARGET_OBJECTS:${PROJECT_NAME}_objects>)
+    list(APPEND LIB_TARGETS ${PROJECT_NAME}_static)
+endif()
+
+#Add shared lib target
+if(BUILD_SHARED_LIBS)
+    add_library(${PROJECT_NAME}_shared SHARED $<TARGET_OBJECTS:${PROJECT_NAME}_objects>)
+    list(APPEND LIB_TARGETS ${PROJECT_NAME}_shared)
+endif()
+
+#Set common lib target properties
+set_target_properties(${LIB_TARGETS} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+
+### Install
+install(TARGETS ${LIB_TARGETS} EXPORT ${PROJECT_NAME}Exports 
+        INCLUDES DESTINATION include/${BUFRLIB_INCLUDE_DIR})
+install(FILES ${C_HDRS} DESTINATION include/${BUFRLIB_INCLUDE_DIR})
+install(DIRECTORY ${CMAKE_BINARY_DIR}/${BUFRLIB_INCLUDE_DIR}/
+        DESTINATION include/${BUFRLIB_INCLUDE_DIR})
+
+### Package config
+include(CMakePackageConfigHelpers)
+
+export(EXPORT ${PROJECT_NAME}Exports NAMESPACE ${PROJECT_NAME}:: FILE ${PROJECT_NAME}-targets.cmake)
+
+set(CONFIG_INSTALL_DESTINATION share/${PROJECT_NAME}/cmake)
+
+# bufrlib-config.cmake
+configure_package_config_file(cmake/PackageConfig.cmake.in ${PROJECT_NAME}-config.cmake
+                              INSTALL_DESTINATION ${CONFIG_INSTALL_DESTINATION})
+install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config.cmake 
+        DESTINATION ${CONFIG_INSTALL_DESTINATION})
+
+# bufrlib-config-version.cmake
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion)
+install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake 
+        DESTINATION ${CONFIG_INSTALL_DESTINATION})
+
+# bufrlib-targets.cmake and bufrlib-targets-<build-type>.cmake
+install(EXPORT ${PROJECT_NAME}Exports NAMESPACE ${PROJECT_NAME}::
+        FILE ${PROJECT_NAME}-targets.cmake
+        DESTINATION ${CONFIG_INSTALL_DESTINATION})
