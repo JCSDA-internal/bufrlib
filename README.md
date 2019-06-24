@@ -61,6 +61,23 @@ for each build type, and build and install to the same prefix, or using the `bui
 ./tools/build.sh <install-prefix> -DBUILD_STATIC_LIBS=1 -DBUILD_SHARED_LIBS=1 -DCMAKE_BUILD_TYPE=Debug
 ```
 
+### Setting compilers and flags
+
+The compilers and flags used can be controled by setting normal environment variables before the CMake configure
+step.
+ * `FC` - Fortran compiler
+ * `CC` - C compiler
+ * `FFLAGS` - Fortran compiler flags
+ * `CFLAGS` - C compiler flags
+ * `LDFLAGS` - Linker flags
+
+### Debugging compilation/linking errors
+
+To see the exact command line arguments, the CMake generated Makefile will respect the `VERBOSE` environment variable:
+```
+cd _build && VERBOSE=1 make
+```
+
 ## Using the BUFRLIB CMake package in CMakeLists.txt
 
 ```

@@ -30,19 +30,39 @@ if(NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 #Postfix for debug libraries so they can live alongside release libraries
-set(CMAKE_DEBUG_POSTFIX "_d")
+set(CMAKE_DEBUG_POSTFIX ".debug" CACHE STRING "Debug file extension")
 
 ### Compilation flags
+## General compiler flags
+#GNU compiler flags - debug
+add_compile_options($<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:GNU>>:-O0>
+                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:GNU>>:-W>
+                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:GNU>>:-Wall>
+                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:GNU>>:-Wextra>
+                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:GNU>>:-Wno-tabs>
+                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:GNU>>:-Wno-unused-parameter>)
+add_compile_options($<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>,$<C_COMPILER_ID:GNU>>:-O0>
+                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>,$<C_COMPILER_ID:GNU>>:-W>
+                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>,$<C_COMPILER_ID:GNU>>:-Wall>
+                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>,$<C_COMPILER_ID:GNU>>:-Wextra>)
 
+#INTEL compiler flags - debug
+add_compile_options($<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:Intel>>:-W1>
+                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:Intel>>:-traceback>
+                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:Intel>>:-CB>
+                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:Intel>>:-ftrapuv>)
+add_compile_options($<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>,$<C_COMPILER_ID:Intel>>:-W1>)
+
+## Package compiler flags
 #Public flags are necessary to build the library and to build code that links against the library
-set(BUFRLIB_PUBLIC_FLAGS DYNAMIC_ALLOCATION)
-
 #Private flags are necessary only when building the library
+set(PUBLIC_FLAGS DYNAMIC_ALLOCATION)
+
 set(BUFRLIB_PRM src/bufrlib.prm)
 file(READ ${BUFRLIB_PRM} BUFRLIB_PRM_STR)
 foreach(_var IN ITEMS MAXNC MXNAF)
     if(BUFRLIB_PRM_STR MATCHES "${_var} = ([0-9]+)")
-        list(APPEND BUFRLIB_PRIVATE_FLAGS $<$<COMPILE_LANGUAGE:C>:${_var}=${CMAKE_MATCH_1}>)
+        list(APPEND PRIVATE_FLAGS $<$<COMPILE_LANGUAGE:C>:${_var}=${CMAKE_MATCH_1}>)
     else()
         message(FATAL_ERROR "Unable to parse variable ${_var} value from file: ${BUFRLIB_PRM}")
     endif()
@@ -51,14 +71,14 @@ endforeach()
 include(TestBigEndian)
 test_big_endian(IS_BIG_ENDIAN)
 if(IS_BIG_ENDIAN)
-    list(APPEND BUFRLIB_PRIVATE_FLAGS $<$<COMPILE_LANGUAGE:Fortran>:BIG_ENDIAN>)
+    list(APPEND PRIVATE_FLAGS $<$<COMPILE_LANGUAGE:Fortran>:BIG_ENDIAN>)
 else()
-    list(APPEND BUFRLIB_PRIVATE_FLAGS $<$<COMPILE_LANGUAGE:Fortran>:LITTLE_ENDIAN>)
+    list(APPEND PRIVATE_FLAGS $<$<COMPILE_LANGUAGE:Fortran>:LITTLE_ENDIAN>)
 endif()
 
 ### Global compilation properties
-set(BUFRLIB_INCLUDE_DIR bufrlib) #path relative to <prefix>/include/ to install headers/modules
-set(CMAKE_Fortran_MODULE_DIRECTORY ${BUFRLIB_INCLUDE_DIR})
+set(INCLUDE_DIR ${PROJECT_NAME}) #path relative to <prefix>/include/ to install headers/modules
+set(CMAKE_Fortran_MODULE_DIRECTORY ${INCLUDE_DIR})
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 #Enable interproceedural optimization if available
@@ -83,8 +103,8 @@ file(GLOB F_SRC src/modv*.F src/moda*.F src/*.f src/*.F) #Order of compilation i
 
 #Use a common object library for building shared and static targets
 add_library(${PROJECT_NAME}_objects OBJECT ${C_SRC} ${F_SRC})
-target_compile_definitions(${PROJECT_NAME}_objects PUBLIC ${BUFRLIB_PUBLIC_FLAGS} 
-                                                   PRIVATE ${BUFRLIB_PRIVATE_FLAGS})
+target_compile_definitions(${PROJECT_NAME}_objects PUBLIC ${PUBLIC_FLAGS} 
+                                                   PRIVATE ${PRIVATE_FLAGS})
 
 #Add static lib target
 if(BUILD_STATIC_LIBS)
@@ -102,11 +122,13 @@ endif()
 set_target_properties(${LIB_TARGETS} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 
 ### Install
-install(TARGETS ${LIB_TARGETS} EXPORT ${PROJECT_NAME}Exports 
-        INCLUDES DESTINATION include/${BUFRLIB_INCLUDE_DIR})
-install(FILES ${C_HDRS} DESTINATION include/${BUFRLIB_INCLUDE_DIR})
-install(DIRECTORY ${CMAKE_BINARY_DIR}/${BUFRLIB_INCLUDE_DIR}/
-        DESTINATION include/${BUFRLIB_INCLUDE_DIR})
+install(TARGETS ${LIB_TARGETS} EXPORT ${PROJECT_NAME}Exports
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        INCLUDES DESTINATION include/${INCLUDE_DIR})
+install(FILES ${C_HDRS} DESTINATION include/${INCLUDE_DIR})
+install(DIRECTORY ${CMAKE_BINARY_DIR}/${INCLUDE_DIR}/
+        DESTINATION include/${INCLUDE_DIR})
 
 ### Package config
 include(CMakePackageConfigHelpers)
