@@ -22,36 +22,26 @@ message(STATUS "Option: BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
 message(STATUS "Option: OPT_IPO: ${OPT_IPO}")
 
 #Set default build type to Release if not specified
-if(NOT CMAKE_CONFIGURATION_TYPES)
-  if(NOT CMAKE_BUILD_TYPE)
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
     message(STATUS "Setting default build type to 'Release'.  Set CMAKE_BUILD_TYPE variable to change build types.")
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY VALUE "Release")
-  endif()
 endif()
 
 #Postfix for debug libraries so they can live alongside release libraries
 set(CMAKE_DEBUG_POSTFIX ".debug" CACHE STRING "Debug file extension")
 
-### Compilation flags
-## General compiler flags
-#GNU compiler flags - debug
-add_compile_options($<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:GNU>>:-O0>
-                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:GNU>>:-W>
-                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:GNU>>:-Wall>
-                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:GNU>>:-Wextra>
-                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:GNU>>:-Wno-tabs>
-                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:GNU>>:-Wno-unused-parameter>)
-add_compile_options($<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>,$<C_COMPILER_ID:GNU>>:-O0>
-                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>,$<C_COMPILER_ID:GNU>>:-W>
-                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>,$<C_COMPILER_ID:GNU>>:-Wall>
-                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>,$<C_COMPILER_ID:GNU>>:-Wextra>)
+message("CMAKE_Fortran_FLAGS_DEBUG is ${CMAKE_Fortran_FLAGS_DEBUG}")
+message("CMAKE_Fortran_FLAGS_RELEASE is ${CMAKE_Fortran_FLAGS_RELEASE}")
+message("CMAKE_Fortran_FLAGS_RELWITHDEBINFO is ${CMAKE_Fortran_FLAGS_RELWITHDEBINFO}")
+message("CMAKE_Fortran_FLAGS_MINSIZEREL is ${CMAKE_Fortran_FLAGS_MINSIZEREL}")
 
-#INTEL compiler flags - debug
-add_compile_options($<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:Intel>>:-W1>
-                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:Intel>>:-traceback>
-                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:Intel>>:-CB>
-                    $<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:Fortran>,$<Fortran_COMPILER_ID:Intel>>:-ftrapuv>)
-add_compile_options($<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>,$<C_COMPILER_ID:Intel>>:-W1>)
+message("CMAKE_C_FLAGS_DEBUG is ${CMAKE_C_FLAGS_DEBUG}")
+message("CMAKE_C_FLAGS_RELEASE is ${CMAKE_C_FLAGS_RELEASE}")
+message("CMAKE_C_FLAGS_RELWITHDEBINFO is ${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+message("CMAKE_C_FLAGS_MINSIZEREL is ${CMAKE_C_FLAGS_MINSIZEREL}")
+
+
+### Compilation flags
 
 ## Package compiler flags
 #Public flags are necessary to build the library and to build code that links against the library
