@@ -30,19 +30,7 @@ endif()
 #Postfix for debug libraries so they can live alongside release libraries
 set(CMAKE_DEBUG_POSTFIX ".debug" CACHE STRING "Debug file extension")
 
-message("CMAKE_Fortran_FLAGS_DEBUG is ${CMAKE_Fortran_FLAGS_DEBUG}")
-message("CMAKE_Fortran_FLAGS_RELEASE is ${CMAKE_Fortran_FLAGS_RELEASE}")
-message("CMAKE_Fortran_FLAGS_RELWITHDEBINFO is ${CMAKE_Fortran_FLAGS_RELWITHDEBINFO}")
-message("CMAKE_Fortran_FLAGS_MINSIZEREL is ${CMAKE_Fortran_FLAGS_MINSIZEREL}")
-
-message("CMAKE_C_FLAGS_DEBUG is ${CMAKE_C_FLAGS_DEBUG}")
-message("CMAKE_C_FLAGS_RELEASE is ${CMAKE_C_FLAGS_RELEASE}")
-message("CMAKE_C_FLAGS_RELWITHDEBINFO is ${CMAKE_C_FLAGS_RELWITHDEBINFO}")
-message("CMAKE_C_FLAGS_MINSIZEREL is ${CMAKE_C_FLAGS_MINSIZEREL}")
-
-
 ### Compilation flags
-
 ## Package compiler flags
 #Public flags are necessary to build the library and to build code that links against the library
 #Private flags are necessary only when building the library
