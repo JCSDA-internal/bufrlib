@@ -97,7 +97,7 @@ if(BUILD_SHARED_LIBS)
 endif()
 
 #Set common lib target properties
-set_target_properties(${LIB_TARGETS} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+set_target_properties(${LIB_TARGETS} PROPERTIES OUTPUT_NAME bufr)
 
 ### Install
 install(TARGETS ${LIB_TARGETS} EXPORT ${PROJECT_NAME}Exports
