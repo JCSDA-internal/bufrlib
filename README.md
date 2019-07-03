@@ -31,12 +31,19 @@ via the `-D<var>=<val>` syntax:
 This package can build both static and shared libraries simultaneously.  At least one of `BUILD_STATIC_LIBS` or `BUILD_SHARED_LIBS` must be set.  If neither is set,
 `BUILD_STATIC_LIBS` will be used.
 
-### CMake Package Config
+### CMake package config
 
 This package installs a modern [CMake package config file](https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html#config-file-packages)
 which provides [imported interface targets](https://cmake.org/cmake/help/latest/command/add_library.html#interface-libraries) using
 CMake namespaces.
 
+#### Components
+
+The bufrlib package config file can identify the following components through `COMPONENTS` or `REQUIRED COMPONENTS` keywords to the 
+`find_package()` command.
+ * `SHARED` - Find shared libraries
+ * `STATIC` - Find shared libraries
+ 
 #### Provided imported interface libraries
 
  * `bufrlib::bufrlib_static` - Static libraries if available
@@ -49,7 +56,7 @@ CMake namespaces.
  * `bufrlib_SHARED_LIBRARIES` - Set to `bufrlib::bufrlib_shared` if available.
  * `bufrlib_BUILD_TYPES` - List of `CMAKE_BUILD_TYPE`s available.
 
-### CMake Build types
+### CMake build types
 
 This package has the capability to install *Debug* and *Release* versions of both static and shared
 libraries so that they can coexist under the same install prefix.  Using the generated CMake package config file, a downstream package
@@ -59,7 +66,7 @@ property of the [imported interface targets](https://cmake.org/cmake/help/latest
 version of this library.
 
 To build and install shared and static versions of *Debug* and *Release* build types to the
-same install prefix, the build procedure can be repeated for each build-type:
+same install prefix, the build procedure can be repeated for each build-type.
 ```
 ./tools/build.sh <install-prefix> -DBUILD_STATIC_LIBS=1 -DBUILD_SHARED_LIBS=1 -DCMAKE_BUILD_TYPE=Release
 ./tools/build.sh <install-prefix> -DBUILD_STATIC_LIBS=1 -DBUILD_SHARED_LIBS=1 -DCMAKE_BUILD_TYPE=Debug
@@ -87,23 +94,19 @@ The following environment variables are of general use for configuring custom bu
    * Sets: `CMAKE_Fortran_COMPILER`
  * [`CC`](https://cmake.org/cmake/help/latest/envvar/CC.html) - C compiler (full path to executable or name of executable on PATH).
    * Sets: `CMAKE_C_COMPILER`
- * [`CXX`](https://cmake.org/cmake/help/latest/envvar/CXX.html) - C++ compiler (full path to executable or name of executable on PATH). 
-   * Sets: `CMAKE_CXX_COMPILER`
  * [`FFLAGS`](https://cmake.org/cmake/help/latest/envvar/FFLAGS.html) - Fortran compiler flags 
    * Sets: `CMAKE_Fortran_FLAGS`
  * [`CFLAGS`](https://cmake.org/cmake/help/latest/envvar/CFLAGS.html) - C compiler flags 
    * Sets: `CMAKE_C_FLAGS`
- * [`CXXFLAGS`](https://cmake.org/cmake/help/latest/envvar/CXXFLAGS.html) - C++ compile flags 
-   * Sets: `CMAKE_CXX_FLAGS`
  * [`LDFLAGS`](https://cmake.org/cmake/help/latest/envvar/LDFLAGS.html) - Universal linker flags.  Common flags for all linker operations.
    * Sets: `CMAKE_EXE_LINKER_FLAGS`, `CMAKE_SHARED_LINKER_FLAGS`, `CMAKE_STATIC_LINKER_FLAGS`, and `CMAKE_MODULE_LINKER_FLAGS`
 
-#### CMake Cache variables
+#### CMake cache variables
 Finer-grained control over the compilers and flags used can be achieved using CMake cache variables.  These variables can be configured directly by using the `-D<var>=<val>` arguments to the `cmake` command
 when generating a new build directory.  After the initial build-system generation, cache variables
 can be viewed and modified with the [CMake GUI](https://cmake.org/cmake/help/latest/manual/cmake-gui.1.html), which must be given the path to the build directory as input, *e.g.*:
 ```
-$ cd <build-dir> && cmake-gui . &
+cd <build-dir> && cmake-gui . &
 ```
 
 The following CMake cache variables are useful for controlling the compilation and linking steps.  These variables define the base set of flags used for compilation and linking processes, but targets
@@ -113,14 +116,11 @@ Optional or system dependent flags should be set directly via these CMake cache 
  * **Compilers**
    * [`CMAKE_Fortran_COMPILER`](https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER.html) - Full path to the Fortran compiler.
    * [`CMAKE_C_COMPILER`](https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER.html) - Full path to the C compiler.
-   * [`CMAKE_CXX_COMPILER`](https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER.html) - Full path to the C++ compiler.
  * **Compiler flags**
    * [`CMAKE_Fortran_FLAGS`](https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_FLAGS.html) - Common set of universal Fortran compiler flags.
    * [`CMAKE_Fortran_FLAGS_<BUILD-TYPE>`](https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_FLAGS_CONFIG.html) - Fortran compiler flags specific to each CMake build type.
    * [`CMAKE_C_FLAGS`](https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_FLAGS.html) - Common set of universal C compiler flags.
    * [`CMAKE_C_FLAGS_<BUILD-TYPE>`](https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_FLAGS_CONFIG.html)  - C compiler flags specific to each CMake build type.
-   * [`CMAKE_CX_FLAGS`](https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_FLAGS.html) - Common set of universal C++ compiler flags.
-   * [`CMAKE_CXX_FLAGS_<BUILD-TYPE>`](https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_FLAGS_CONFIG.html)  - C++ compiler flags specific to each CMake build type.
  * **Linker flags** 
    * [`CMAKE_EXE_LINKER_FLAGS`](https://cmake.org/cmake/help/latest/variable/CMAKE_EXE_LINKER_FLAGS.html) - Common set of linker flags used when creating an executable.
    * [`CMAKE_EXE_LINKER_FLAGS_<BUILD-TYPE>`](https://cmake.org/cmake/help/latest/variable/CMAKE_EXE_LINKER_FLAGS_CONFIG.html) - Linking flags for executables specific to each CMake build type.
@@ -140,22 +140,30 @@ The default build types and thier GCC flags are:
  * `RelWithDebInfo` - Optimized release version with debugging info [GCC: `-O2 -g -DNDEBUG`]
 ### Debugging compilation/linking errors
 
-To see the exact command line invocations CMake uses to build the project, set the [`VERBOSE`](https://cmake.org/cmake/help/latest/envvar/VERBOSE.html) environment variable:
+To see the exact command line invocations CMake uses to build the project, set the [`VERBOSE`](https://cmake.org/cmake/help/latest/envvar/VERBOSE.html) environment variable.
 ```
-$ cd <build-dir> && VERBOSE=1 make
+cd <build-dir> && VERBOSE=1 make
 ```
 
 ## Using the BUFRLIB package in CMake projects.
-The CMake package config file provided by this CMake build system will allow downstream libraries
-to find this library easily via the [`find_package()`](https://cmake.org/cmake/help/latest/command/find_package.html) command.  When linking a target against this library, we recommend using
-the imported interface targets provided by the package config file as arguments to the [`target_link_libraries()`](https://cmake.org/cmake/help/latest/command/target_link_libraries.html) command.  Using
+The CMake package config file provided will allow downstream libraries
+to find this library via the [`find_package()`](https://cmake.org/cmake/help/latest/command/find_package.html) command.  When linking a target against this library, we recommend using
+the provided *imported interface targets* as arguments to the [`target_link_libraries()`](https://cmake.org/cmake/help/latest/command/target_link_libraries.html) command.  Using
 the imported targets will cause all transitive dependencies as well as public linking and compiling flags
 and even library and include directories to be automatically added to your target's compilation and linking
-phases as appropriate.  For example, in the dependent project's `CMakeLists.txt`:
-```
-find_package(bufrlib REQUIRED)
-target_link_libraries(${MY_STATIC_TARGET} PRIVATE bufrlib::bufrlib_static)
-...
-target_link_libraries(${MY_SHARED_TARGET} PUBLIC bufrlib::bufrlib_shared)
+phases as appropriate.
 
+### Example useage
+
+ * Linking against the static libraries, in a dependent project's `CMakeLists.txt`:
 ```
+find_package(bufrlib REQUIRED COMPONENTS STATIC)
+target_link_libraries(${MY_STATIC_TARGET} <PUBLIC|PRIVATE|INTERFACE> bufrlib::bufrlib_static)
+```
+
+ * Linking against the shared libraries, in a dependent project's `CMakeLists.txt`:
+```
+find_package(bufrlib REQUIRED COMPONENTS SHARED)
+target_link_libraries(${MY_SHARED_TARGET} <PUBLIC|PRIVATE|INTERFACE> bufrlib::bufrlib_shared)
+```
+As described in the [`target_link_libraries()` documentation](https://cmake.org/cmake/help/latest/command/target_link_libraries.html#libraries-for-a-target-and-or-its-dependents), the choice of `PUBLIC`, `PRIVATE`, or `INTERFACE` visibility will depend on the requirements of the target library and it's own link interface as required by further downstream dependencies.
