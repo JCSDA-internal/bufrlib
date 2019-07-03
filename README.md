@@ -80,16 +80,9 @@ The compiler executables as well as the compilation and linking flags used in th
 
 #### Environment variables
 Certain environment variables are respected by CMake when initially generating a build system in a
-new build directory.  Each environment variable will contribute its setting to the appropriate
-CMake cache variable(s).   This is generally done by appending and environment variables will not overwrite default 
-settings for the CMake cache variables.
+new build directory.  Each environment variable will append its value onto the default values of the appropriate
+CMake cache variable(s).  To completely override any CMake defualt values for compiler flags, use the appropriate CMake cache variables instead.
 
-Environment variables generally only have an effect when creating a new build
-directory for the first time.  Once CMake has generated the build system in a directory, subsequent re-generation
-of the build system using `cmake` on the same directory will not take into account any changes to
-environment variables because their effect has already been stored in the appropriate CMake cache variable.
-
-The following environment variables are of general use for configuring custom builds
  * [`FC`](https://cmake.org/cmake/help/latest/envvar/FC.html) - Fortran compiler (full path to executable or name of executable on PATH).
    * Sets: `CMAKE_Fortran_COMPILER`
  * [`CC`](https://cmake.org/cmake/help/latest/envvar/CC.html) - C compiler (full path to executable or name of executable on PATH).
@@ -100,6 +93,11 @@ The following environment variables are of general use for configuring custom bu
    * Sets: `CMAKE_C_FLAGS`
  * [`LDFLAGS`](https://cmake.org/cmake/help/latest/envvar/LDFLAGS.html) - Universal linker flags.  Common flags for all linker operations.
    * Sets: `CMAKE_EXE_LINKER_FLAGS`, `CMAKE_SHARED_LINKER_FLAGS`, `CMAKE_STATIC_LINKER_FLAGS`, and `CMAKE_MODULE_LINKER_FLAGS`
+
+Environment variables  only have an effect when creating a new build
+directory for the first time.  Once CMake has generated the build system in a directory, subsequent re-generation
+of the build system using `cmake` on the same directory will not take into account any changes to
+environment variables because their effect has already been stored in the appropriate CMake cache variable.
 
 #### CMake cache variables
 Finer-grained control over the compilers and flags used can be achieved using CMake cache variables.  These variables can be configured directly by using the `-D<var>=<val>` arguments to the `cmake` command
@@ -112,7 +110,7 @@ cd <build-dir> && cmake-gui . &
 The following CMake cache variables are useful for controlling the compilation and linking steps.  These variables define the base set of flags used for compilation and linking processes, but targets
 may define additional flags which are appended to the list of flags to be used.  For this reason, the CMake targets
 specified in this project only define flags that are strictly necessary for compilation and linking.
-Optional or system dependent flags should be set directly via these CMake cache variables:
+Optional or system-dependent flags should be set directly via these CMake cache variables:
  * **Compilers**
    * [`CMAKE_Fortran_COMPILER`](https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER.html) - Full path to the Fortran compiler.
    * [`CMAKE_C_COMPILER`](https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER.html) - Full path to the C compiler.
