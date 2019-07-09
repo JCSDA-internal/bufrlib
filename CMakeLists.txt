@@ -40,7 +40,7 @@ set(BUFRLIB_PRM src/bufrlib.prm)
 file(READ ${BUFRLIB_PRM} BUFRLIB_PRM_STR)
 foreach(_var IN ITEMS MAXNC MXNAF)
     if(BUFRLIB_PRM_STR MATCHES "${_var} = ([0-9]+)")
-        list(APPEND PRIVATE_FLAGS $<$<COMPILE_LANGUAGE:C>:${_var}=${CMAKE_MATCH_1}>)
+        list(APPEND PRIVATE_FLAGS $<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:${_var}=${CMAKE_MATCH_1}>)
     else()
         message(FATAL_ERROR "Unable to parse variable ${_var} value from file: ${BUFRLIB_PRM}")
     endif()
@@ -56,7 +56,7 @@ endif()
 
 include(FortranCInterface)
 if(FortranCInterface_GLOBAL_FOUND AND FortranCInterface_GLOBAL_SUFFIX STREQUAL "_")
-    list(APPEND PUBLIC_FLAGS $<$<COMPILE_LANGUAGE:C>:UNDERSCORE>)
+    list(APPEND PUBLIC_FLAGS $<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:UNDERSCORE>)
 endif()
 
 ### Global compilation properties
