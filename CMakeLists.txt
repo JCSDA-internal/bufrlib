@@ -6,9 +6,9 @@ cmake_minimum_required( VERSION 3.9 )
 project(bufrlib VERSION 11.3 LANGUAGES C Fortran)
 
 ### Configuration options
-option(BUILD_STATIC_LIBS "Build static libarary" ON)
-option(BUILD_SHARED_LIBS "Build shared libarary" OFF)
-option(OPT_IPO "Enable interproceedural optimization if availible." ON)
+option(BUILD_STATIC_LIBS "Build static library" ON)
+option(BUILD_SHARED_LIBS "Build shared library" OFF)
+option(OPT_IPO "Enable interprocedural optimization if available." ON)
 
 #Ensure at least one of BUILD_SHARED_LIBS and BUILD_STATIC_LIBS is set
 if(NOT (BUILD_STATIC_LIBS OR BUILD_SHARED_LIBS))
@@ -70,13 +70,13 @@ check_ipo_supported(RESULT _result OUTPUT _output)
 if(_result)
     if(OPT_IPO)
         set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
-        message(STATUS "Interproceedural optimization: Enabled")
+        message(STATUS "Interprocedural optimization: Enabled")
     else()
         set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
-        message(STATUS "Interproceedural optimization: Disabled")
+        message(STATUS "Interprocedural optimization: Disabled")
     endif()
 else()
-    message(STATUS "Interproceedural optimization: Not availible")
+    message(STATUS "Interprocedural optimization: Not available")
 endif()
 
 ### Define Library Targets
