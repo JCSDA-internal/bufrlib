@@ -54,12 +54,17 @@ else()
     list(APPEND PRIVATE_FLAGS $<$<COMPILE_LANGUAGE:Fortran>:LITTLE_ENDIAN>)
 endif()
 
+include(FortranCInterface)
+if(FortranCInterface_GLOBAL_FOUND AND FortranCInterface_GLOBAL_SUFFIX STREQUAL "_")
+    list(APPEND PUBLIC_FLAGS $<$<COMPILE_LANGUAGE:C>:UNDERSCORE>)
+endif()
+
 ### Global compilation properties
 set(INCLUDE_DIR ${PROJECT_NAME}) #path relative to <prefix>/include/ to install headers/modules
 set(CMAKE_Fortran_MODULE_DIRECTORY ${INCLUDE_DIR})
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-#Enable interproceedural optimization if available
+#Enable interprocedural optimization if available
 include(CheckIPOSupported)
 check_ipo_supported(RESULT _result OUTPUT _output)
 if(_result)
@@ -98,6 +103,10 @@ endif()
 
 #Set common lib target properties
 set_target_properties(${LIB_TARGETS} PROPERTIES OUTPUT_NAME bufr)
+foreach(_tgt IN LISTS LIB_TARGETS)
+    #PUBLIC target_compile_definitions are not correctly propagated from object libraries
+    target_compile_definitions(${_tgt} PUBLIC "${PUBLIC_FLAGS}")
+endforeach()
 
 ### Install
 install(TARGETS ${LIB_TARGETS} EXPORT ${PROJECT_NAME}Exports
