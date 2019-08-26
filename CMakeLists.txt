@@ -110,8 +110,6 @@ endforeach()
 
 ### Install
 install(TARGETS ${LIB_TARGETS} EXPORT ${PROJECT_NAME}Exports
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib
         INCLUDES DESTINATION include/${INCLUDE_DIR})
 install(FILES ${C_HDRS} DESTINATION include/${INCLUDE_DIR})
 install(DIRECTORY ${CMAKE_BINARY_DIR}/${INCLUDE_DIR}/
