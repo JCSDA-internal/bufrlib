@@ -40,6 +40,6 @@ else()
     set(@PROJECT_NAME@_NOT_FOUND_MESSAGE "Neither BUILD_SHARED_LIBS nor BUILD_STATIC_LIBS was set.  Unable to find any libararies.")
 endif()
 
-get_target_property(@PROJECT_NAME@_BUILD_TYPES @PROJECT_NAME@_LIBRARIES IMPORTED_CONFIGURATIONS)
+get_target_property(@PROJECT_NAME@_BUILD_TYPES ${@PROJECT_NAME@_LIBRARIES} IMPORTED_CONFIGURATIONS)
 
 check_required_components("@PROJECT_NAME@")
