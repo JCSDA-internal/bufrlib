@@ -4,7 +4,7 @@
 
 cmake_minimum_required( VERSION 3.9 )
 project(bufrlib VERSION 11.3 LANGUAGES C Fortran)
-
+include(GNUInstallDirs)
 ### Configuration options
 option(BUILD_STATIC_LIBS "Build static library" ON)
 option(BUILD_SHARED_LIBS "Build shared library" OFF)
@@ -110,10 +110,12 @@ endforeach()
 
 ### Install
 install(TARGETS ${LIB_TARGETS} EXPORT ${PROJECT_NAME}Exports
-        INCLUDES DESTINATION include/${INCLUDE_DIR})
-install(FILES ${C_HDRS} DESTINATION include/${INCLUDE_DIR})
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${INCLUDE_DIR})
+install(FILES ${C_HDRS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${INCLUDE_DIR})
 install(DIRECTORY ${CMAKE_BINARY_DIR}/${INCLUDE_DIR}/
-        DESTINATION include/${INCLUDE_DIR})
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${INCLUDE_DIR})
 
 ### Package config
 include(CMakePackageConfigHelpers)
