@@ -6,15 +6,24 @@ cmake_minimum_required( VERSION 3.9 )
 project(bufrlib VERSION 11.3 LANGUAGES C Fortran)
 include(GNUInstallDirs)
 ### Configuration options
-option(BUILD_STATIC_LIBS "Build static library" ON)
-option(BUILD_SHARED_LIBS "Build shared library" OFF)
-option(OPT_IPO "Enable interprocedural optimization if available." ON)
+option(BUILD_STATIC_LIBS "Build static libraries" OFF)
+option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+option(OPT_IPO "Enable inter-procedural optimization if available." ON)
 
 #Ensure at least one of BUILD_SHARED_LIBS and BUILD_STATIC_LIBS is set
 if(NOT (BUILD_STATIC_LIBS OR BUILD_SHARED_LIBS))
-    message(STATUS "Niether BUILD_STATIC_LIBS nor BUILD_SHARED_LIBS is set.  Defaulting to BUILD_STATIC_LIBS=ON")
-    set(BUILD_STATIC_LIBS ON CACHE BOOL "Build static library" FORCE)
-    set(BUILD_STATIC_LIBS ON)
+    if(OPT_IPO)
+        message(WARNING "Niether BUILD_STATIC_LIBS nor BUILD_SHARED_LIBS is set.  Defaulting to BUILD_SHARED_LIBS=ON")
+        set(BUILD_SHARED_LIBS ON CACHE BOOL "[FORCE ENABLED] Build shared libraries" FORCE)
+        set(BUILD_SHARED_LIBS ON)
+    else()
+        set(BUILD_STATIC_LIBS ON CACHE BOOL "[FORCE ENABLED] Build static libraries" FORCE)
+        set(BUILD_STATIC_LIBS ON)
+    endif()
+endif()
+if(OPT_IPO AND BUILD_STATIC_LIBS)
+    message(WARNING "BUILD_STATIC_LIBS and OPT_IPO are currently incompatible.  Disabling OPT_IPO.")
+    set(OPT_IPO OFF CACHE BOOL "[DISABLED] Conflicts with BUILD_STATIC_LIBS." FORCE)
 endif()
 
 message(STATUS "Option: BUILD_STATIC_LIBS: ${BUILD_STATIC_LIBS}")
@@ -101,12 +110,28 @@ if(BUILD_SHARED_LIBS)
     list(APPEND LIB_TARGETS ${PROJECT_NAME}_shared)
 endif()
 
-#Set common lib target properties
+### Set common lib target properties
+
+#Include Fortran module output directory
+set(MODULE_DIR module/${PROJECT_NAME}/${CMAKE_Fortran_COMPILER_ID}/${CMAKE_Fortran_COMPILER_VERSION})
+set_target_properties(${PROJECT_NAME}_objects PROPERTIES Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/${MODULE_DIR})
+install(DIRECTORY ${CMAKE_BINARY_DIR}/${MODULE_DIR}/ DESTINATION ${MODULE_DIR})
+
 set_target_properties(${LIB_TARGETS} PROPERTIES OUTPUT_NAME bufr)
 foreach(_tgt IN LISTS LIB_TARGETS)
     #PUBLIC target_compile_definitions are not correctly propagated from object libraries
     target_compile_definitions(${_tgt} PUBLIC "${PUBLIC_FLAGS}")
+    target_link_libraries(${_tgt} INTERFACE
+        $<$<AND:$<OR:$<Fortran_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:GNU>>,$<NOT:$<CONFIG:Debug>>>:-Wno-lto-type-mismatch>)
+#     target_link_options(${_tgt} INTERFACE -Wno-lto-type-mismatch)
+#         $<$<AND:$<OR:$<Fortran_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:GNU>>,$<NOT:$<CONFIG:Debug>>>:-Wno-lto-type-mismatch>)
+#     #Include Fortran module output directory for build and install interfaces
+    target_include_directories(${_tgt} INTERFACE
+                                    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/${MODULE_DIR}>
+                                    $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${MODULE_DIR}>)
 endforeach()
+
+
 
 ### Install
 install(TARGETS ${LIB_TARGETS} EXPORT ${PROJECT_NAME}Exports
