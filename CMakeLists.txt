@@ -123,9 +123,7 @@ foreach(_tgt IN LISTS LIB_TARGETS)
     target_compile_definitions(${_tgt} PUBLIC "${PUBLIC_FLAGS}")
     target_link_libraries(${_tgt} INTERFACE
         $<$<AND:$<OR:$<Fortran_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:GNU>>,$<NOT:$<CONFIG:Debug>>>:-Wno-lto-type-mismatch>)
-#     target_link_options(${_tgt} INTERFACE -Wno-lto-type-mismatch)
-#         $<$<AND:$<OR:$<Fortran_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:GNU>>,$<NOT:$<CONFIG:Debug>>>:-Wno-lto-type-mismatch>)
-#     #Include Fortran module output directory for build and install interfaces
+    #Include Fortran module output directory for build and install interfaces
     target_include_directories(${_tgt} INTERFACE
                                     $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/${MODULE_DIR}>
                                     $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${MODULE_DIR}>)
