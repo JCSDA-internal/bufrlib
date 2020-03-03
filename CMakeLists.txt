@@ -126,7 +126,7 @@ foreach(_tgt IN LISTS LIB_TARGETS)
     #Include Fortran module output directory for build and install interfaces
     target_include_directories(${_tgt} INTERFACE
                                     $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/${MODULE_DIR}>
-                                    $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${MODULE_DIR}>)
+                                    $<INSTALL_INTERFACE:${MODULE_DIR}>)
 endforeach()
 
 
