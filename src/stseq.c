@@ -244,7 +244,7 @@ void stseq( f77int *lun, f77int *irepct, f77int *idn, char nemo[8],
 		    strncpy( &card[16], "0", 1 );
 		    strncpy( &card[30], "0", 1 );
 		    sprintf( &card[33], "%4lu", ( unsigned long ) nbits );
-		    strncpy( &card[40], units, strlen( units ) );
+		    strncpy( &card[40], units, 40 );
 		    elemdx( card, lun, sizeof( card ) );
 		  }
 		  if ( ix == 4 )  {

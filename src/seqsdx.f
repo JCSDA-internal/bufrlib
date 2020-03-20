@@ -116,7 +116,7 @@ C           using F=1 "regular" (i.e. non-delayed) replication).
             IF(I.EQ.1 .AND. NUMR.LE.0  ) GOTO 903
             IF(I.EQ.1 .AND. NUMR.GT.255) GOTO 904
             IF(I.NE.1 .AND. NUMR.NE.0  ) GOTO 905
-            ATAG = ATAG(2:J-1)
+            ATAG(1:J-2) = ATAG(2:J-1)
             IREP = I
             GOTO 1
          ENDIF
