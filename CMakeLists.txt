@@ -2,7 +2,7 @@
 # libbufr/CMakeLists.txt
 #
 
-cmake_minimum_required( VERSION 3.9 )
+cmake_minimum_required( VERSION 3.12 )
 project(bufrlib VERSION 11.3 LANGUAGES C Fortran)
 include(GNUInstallDirs)
 ### Configuration options
@@ -43,13 +43,13 @@ set(CMAKE_DEBUG_POSTFIX ".debug" CACHE STRING "Debug file extension")
 ## Package compiler flags
 #Public flags are necessary to build the library and to build code that links against the library
 #Private flags are necessary only when building the library
-set(PUBLIC_FLAGS DYNAMIC_ALLOCATION)
+set(PUBLIC_DEFS DYNAMIC_ALLOCATION)
 
 set(BUFRLIB_PRM src/bufrlib.prm)
 file(READ ${BUFRLIB_PRM} BUFRLIB_PRM_STR)
 foreach(_var IN ITEMS MAXNC MXNAF)
     if(BUFRLIB_PRM_STR MATCHES "${_var} = ([0-9]+)")
-        list(APPEND PRIVATE_FLAGS $<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:${_var}=${CMAKE_MATCH_1}>)
+        list(APPEND PRIVATE_DEFS $<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:${_var}=${CMAKE_MATCH_1}>)
     else()
         message(FATAL_ERROR "Unable to parse variable ${_var} value from file: ${BUFRLIB_PRM}")
     endif()
@@ -58,15 +58,21 @@ endforeach()
 include(TestBigEndian)
 test_big_endian(IS_BIG_ENDIAN)
 if(IS_BIG_ENDIAN)
-    list(APPEND PRIVATE_FLAGS $<$<COMPILE_LANGUAGE:Fortran>:BIG_ENDIAN>)
+    list(APPEND PRIVATE_DEFS $<$<COMPILE_LANGUAGE:Fortran>:BIG_ENDIAN>)
 else()
-    list(APPEND PRIVATE_FLAGS $<$<COMPILE_LANGUAGE:Fortran>:LITTLE_ENDIAN>)
+    list(APPEND PRIVATE_DEFS $<$<COMPILE_LANGUAGE:Fortran>:LITTLE_ENDIAN>)
 endif()
 
 include(FortranCInterface)
 if(FortranCInterface_GLOBAL_FOUND AND FortranCInterface_GLOBAL_SUFFIX STREQUAL "_")
-    list(APPEND PUBLIC_FLAGS $<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:UNDERSCORE>)
+    list(APPEND PUBLIC_DEFS $<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:UNDERSCORE>)
 endif()
+
+# Compiler specific fixes
+if( CMAKE_Fortran_COMPILER_ID STREQUAL GNU AND CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER_EQUAL 10)
+    list(APPEND PRIVATE_OPTS $<$<COMPILE_LANGUAGE:Fortran>:-fallow-argument-mismatch>) #Required for gfortan-10+.  Convert errors to warnings
+endif()
+
 
 ### Global compilation properties
 set(INCLUDE_DIR ${PROJECT_NAME}) #path relative to <prefix>/include/ to install headers/modules
@@ -95,8 +101,9 @@ file(GLOB F_SRC src/modv*.F src/moda*.F src/*.f src/*.F) #Order of compilation i
 
 #Use a common object library for building shared and static targets
 add_library(${PROJECT_NAME}_objects OBJECT ${C_SRC} ${F_SRC})
-target_compile_definitions(${PROJECT_NAME}_objects PUBLIC ${PUBLIC_FLAGS} 
-                                                   PRIVATE ${PRIVATE_FLAGS})
+target_compile_definitions(${PROJECT_NAME}_objects PUBLIC ${PUBLIC_DEFS}
+                                                      PRIVATE ${PRIVATE_DEFS})
+target_compile_options(${PROJECT_NAME}_objects PRIVATE ${PRIVATE_OPTS})
 
 #Add static lib target
 if(BUILD_STATIC_LIBS)
@@ -120,16 +127,18 @@ install(DIRECTORY ${CMAKE_BINARY_DIR}/${MODULE_DIR}/ DESTINATION ${MODULE_DIR})
 set_target_properties(${LIB_TARGETS} PROPERTIES OUTPUT_NAME bufr)
 foreach(_tgt IN LISTS LIB_TARGETS)
     #PUBLIC target_compile_definitions are not correctly propagated from object libraries
-    target_compile_definitions(${_tgt} PUBLIC "${PUBLIC_FLAGS}")
-    target_link_libraries(${_tgt} INTERFACE
-        $<$<AND:$<OR:$<Fortran_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:GNU>>,$<NOT:$<CONFIG:Debug>>>:-Wno-lto-type-mismatch>)
+    target_compile_definitions(${_tgt} PUBLIC "${PUBLIC_DEFS}")
+
+    #Don't warn about type mismatches on LTO for non Debug builds
+    if( CMAKE_Fortran_COMPILER_ID STREQUAL GNU OR CMAKE_C_COMPILER_ID STREQUAL GNU)
+        target_link_libraries(${_tgt} PUBLIC $<$<NOT:$<CONFIG:Debug>>:-Wno-lto-type-mismatch>)
+    endif()
+
     #Include Fortran module output directory for build and install interfaces
     target_include_directories(${_tgt} INTERFACE
                                     $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/${MODULE_DIR}>
                                     $<INSTALL_INTERFACE:${MODULE_DIR}>)
 endforeach()
-
-
 
 ### Install
 install(TARGETS ${LIB_TARGETS} EXPORT ${PROJECT_NAME}Exports
