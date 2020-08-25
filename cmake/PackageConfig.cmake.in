@@ -45,7 +45,10 @@ else()
     set(@PROJECT_NAME@_FOUND 0)
     set(@PROJECT_NAME@_NOT_FOUND_MESSAGE "Neither BUILD_SHARED_LIBS nor BUILD_STATIC_LIBS was set.  Unable to find any libraries.")
 endif()
+#Aliases for NCEPLIBS-bufr naming compatibility point to default targets
 add_library(@PROJECT_NAME@::@PROJECT_NAME@ ALIAS ${@PROJECT_NAME@_LIBRARIES})
+add_library(@PROJECT_NAME@::@PROJECT_NAME@_4_DA ALIAS ${@PROJECT_NAME@_LIBRARIES})
+
 get_target_property(@PROJECT_NAME@_BUILD_TYPES ${@PROJECT_NAME@_LIBRARIES} IMPORTED_CONFIGURATIONS)
 
 #Export Fortran compiler version and check module compatibility
