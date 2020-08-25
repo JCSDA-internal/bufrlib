@@ -3,7 +3,7 @@
 #
 
 cmake_minimum_required( VERSION 3.12 )
-project(bufrlib VERSION 11.3 LANGUAGES C Fortran)
+project(bufr VERSION 11.3 LANGUAGES C Fortran)
 include(GNUInstallDirs)
 ### Configuration options
 option(BUILD_STATIC_LIBS "Build static libraries" OFF)
@@ -120,7 +120,7 @@ endif()
 ### Set common lib target properties
 
 #Include Fortran module output directory
-set(MODULE_DIR module/${PROJECT_NAME}/${CMAKE_Fortran_COMPILER_ID}/${CMAKE_Fortran_COMPILER_VERSION})
+set(MODULE_DIR ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}/${CMAKE_Fortran_COMPILER_ID}/${CMAKE_Fortran_COMPILER_VERSION})
 set_target_properties(${PROJECT_NAME}_objects PROPERTIES Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/${MODULE_DIR})
 install(DIRECTORY ${CMAKE_BINARY_DIR}/${MODULE_DIR}/ DESTINATION ${MODULE_DIR})
 
@@ -154,15 +154,15 @@ include(CMakePackageConfigHelpers)
 
 export(EXPORT ${PROJECT_NAME}Exports NAMESPACE ${PROJECT_NAME}:: FILE ${PROJECT_NAME}-targets.cmake)
 
-set(CONFIG_INSTALL_DESTINATION share/${PROJECT_NAME}/cmake)
+set(CONFIG_INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 
-# bufrlib-config.cmake
+# package-config.cmake
 configure_package_config_file(cmake/PackageConfig.cmake.in ${PROJECT_NAME}-config.cmake
                               INSTALL_DESTINATION ${CONFIG_INSTALL_DESTINATION})
 install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config.cmake 
         DESTINATION ${CONFIG_INSTALL_DESTINATION})
 
-# bufrlib-config-version.cmake
+# package-config-version.cmake
 write_basic_package_version_file(
     ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
     VERSION ${PROJECT_VERSION}
@@ -170,7 +170,7 @@ write_basic_package_version_file(
 install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake 
         DESTINATION ${CONFIG_INSTALL_DESTINATION})
 
-# bufrlib-targets.cmake and bufrlib-targets-<build-type>.cmake
+# package-targets.cmake and package-targets-<build-type>.cmake
 install(EXPORT ${PROJECT_NAME}Exports NAMESPACE ${PROJECT_NAME}::
         FILE ${PROJECT_NAME}-targets.cmake
         DESTINATION ${CONFIG_INSTALL_DESTINATION})
