@@ -120,7 +120,7 @@ endif()
 ### Set common lib target properties
 
 #Include Fortran module output directory
-set(MODULE_DIR ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}/${CMAKE_Fortran_COMPILER_ID}/${CMAKE_Fortran_COMPILER_VERSION})
+set(MODULE_DIR ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}/module/${CMAKE_Fortran_COMPILER_ID}/${CMAKE_Fortran_COMPILER_VERSION})
 set_target_properties(${PROJECT_NAME}_objects PROPERTIES Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/${MODULE_DIR})
 install(DIRECTORY ${CMAKE_BINARY_DIR}/${MODULE_DIR}/ DESTINATION ${MODULE_DIR})
 
