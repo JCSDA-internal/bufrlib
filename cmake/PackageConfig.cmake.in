@@ -7,10 +7,13 @@
 #  * STATIC - Find static libraries.
 #
 # Output variables set:
+#  * @PROJECT_NAME@_VERSION - Version of install package
 #  * @PROJECT_NAME@_LIBRARIES  - set to static libs if available, shared libs otherwise
-#  * @PROJECT_NAME@_SHARED_LIBRARIES - shared libaries if availible
-#  * @PROJECT_NAME@_STATIC_LIBRARIES - static libaries if availible
+#  * @PROJECT_NAME@_SHARED_LIBRARIES - shared libraries if available
+#  * @PROJECT_NAME@_STATIC_LIBRARIES - static libraries if available
 #  * @PROJECT_NAME@_BUILD_TYPES - build types provided
+#  * @PROJECT_NAME@_MODULES_Fortran_COMPILER_ID - Compiler used to generate Fortran Modules
+#  * @PROJECT_NAME@_MODULES_Fortran_COMPILER_VERSION - Compiler version used to generate Fortran Modules
 #
 # Imported interface targets provided:
 #  * @PROJECT_NAME@::@PROJECT_NAME@_static - static library target
@@ -18,6 +21,9 @@
 
 #Include targets file.  This will create IMPORTED target @PROJECT_NAME@
 include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-targets.cmake")
+
+set(@PROJECT_NAME@_VERSION @PROJECT_VERSION@)
+
 set(@PROJECT_NAME@_SHARED_LIBRARIES)
 set(@PROJECT_NAME@_STATIC_LIBRARIES)
 set(@PROJECT_NAME@_SHARED_FOUND 0)
@@ -37,9 +43,25 @@ elseif(@BUILD_SHARED_LIBS@)
     set(@PROJECT_NAME@_SHARED_FOUND 1)
 else()
     set(@PROJECT_NAME@_FOUND 0)
-    set(@PROJECT_NAME@_NOT_FOUND_MESSAGE "Neither BUILD_SHARED_LIBS nor BUILD_STATIC_LIBS was set.  Unable to find any libararies.")
+    set(@PROJECT_NAME@_NOT_FOUND_MESSAGE "Neither BUILD_SHARED_LIBS nor BUILD_STATIC_LIBS was set.  Unable to find any libraries.")
 endif()
+#Aliases for NCEPLIBS-bufr naming compatibility point to default targets
+add_library(@PROJECT_NAME@::@PROJECT_NAME@ ALIAS ${@PROJECT_NAME@_LIBRARIES})
+add_library(@PROJECT_NAME@::@PROJECT_NAME@_4_DA ALIAS ${@PROJECT_NAME@_LIBRARIES})
 
 get_target_property(@PROJECT_NAME@_BUILD_TYPES ${@PROJECT_NAME@_LIBRARIES} IMPORTED_CONFIGURATIONS)
 
+#Export Fortran compiler version and check module compatibility
+set(@PROJECT_NAME@_MODULES_Fortran_COMPILER_ID @CMAKE_Fortran_COMPILER_ID@)
+set(@PROJECT_NAME@_MODULES_Fortran_COMPILER_VERSION @CMAKE_Fortran_COMPILER_VERSION@)
+if(NOT @PROJECT_NAME@_MODULES_Fortran_COMPILER_ID STREQUAL CMAKE_Fortran_COMPILER_ID
+   OR NOT @PROJECT_NAME@_MODULES_Fortran_COMPILER_VERSION VERSION_EQUAL CMAKE_Fortran_COMPILER_VERSION)
+    message(SEND_ERROR "Package @PROJECT_NAME@ provides Fortran modules built with "
+            "${@PROJECT_NAME@_MODULES_Fortran_COMPILER_ID}-${@PROJECT_NAME@_MODULES_Fortran_COMPILER_VERSION} "
+            "but this build for ${PROJECT_NAME} uses incompatible compiler ${CMAKE_Fortran_COMPILER_ID}-${CMAKE_Fortran_COMPILER_VERSION}")
+endif()
+
 check_required_components("@PROJECT_NAME@")
+
+get_target_property(location ${@PROJECT_NAME@_LIBRARIES} LOCATION)
+message(STATUS "Found @PROJECT_NAME@: ${location} (found version \"@PROJECT_VERSION@\")")
