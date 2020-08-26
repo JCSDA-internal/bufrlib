@@ -3,7 +3,7 @@
 #
 
 cmake_minimum_required( VERSION 3.12 )
-project(bufr VERSION 11.3 LANGUAGES C Fortran)
+project(bufr VERSION 11.3.2 LANGUAGES C Fortran)
 include(GNUInstallDirs)
 ### Configuration options
 option(BUILD_STATIC_LIBS "Build static libraries" OFF)
