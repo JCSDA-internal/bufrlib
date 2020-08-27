@@ -124,6 +124,7 @@ set(MODULE_DIR ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}/module/${CMAKE_Fortran_CO
 set_target_properties(${PROJECT_NAME}_objects PROPERTIES Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/${MODULE_DIR})
 install(DIRECTORY ${CMAKE_BINARY_DIR}/${MODULE_DIR}/ DESTINATION ${MODULE_DIR})
 
+set_target_properties(${LIB_TARGETS} PROPERTIES OUTPUT_NAME bufr)
 foreach(_tgt IN LISTS LIB_TARGETS)
     #PUBLIC target_compile_definitions are not correctly propagated from object libraries
     target_compile_definitions(${_tgt} PUBLIC "${PUBLIC_DEFS}")
