@@ -47,7 +47,7 @@ else()
 endif()
 
 #Aliases for NCEPLIBS-bufr naming compatibility point to default targets
-set_target_properties(${@PROJECT_NAME@_STATIC_LIBRARIES} ${@PROJECT_NAME@_SHARED_LIBRARIES} PROPERTIES IMPORTED_GLOBAL) #Allow Alias to targets
+set_target_properties(${@PROJECT_NAME@_STATIC_LIBRARIES} ${@PROJECT_NAME@_SHARED_LIBRARIES} PROPERTIES IMPORTED_GLOBAL 1) #Allow Alias to targets
 add_library(@PROJECT_NAME@::@PROJECT_NAME@ ALIAS ${@PROJECT_NAME@_LIBRARIES})
 add_library(@PROJECT_NAME@::@PROJECT_NAME@_4_DA ALIAS ${@PROJECT_NAME@_LIBRARIES})
 
